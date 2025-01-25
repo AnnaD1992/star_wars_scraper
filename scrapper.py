@@ -2,6 +2,8 @@ import pandas as pd
 import requests
 import logging
 from bs4 import BeautifulSoup
+from io import StringIO
+from urllib.request import Request, urlopen
 
 url = "https://en.wikipedia.org/wiki/Star_Wars"
 
@@ -50,10 +52,31 @@ def scrape_website_requests(url):
 The .content is better to use as it holds raw bytes, 
 and can decode better then the text representation of the .text
 '''
-def parse_data_bs(url):
+def extract_data(url):
     response = scrape_website_requests(url)
     soup = BeautifulSoup(response.content, "html.parser")
-    return soup
+    table = soup.find("table", class_='wikitable plainrowheaders')
+    df = pd.read_html(StringIO(str(table)), header = 0) # needed for the multilines headers
+    df = pd.concat(df)
+    df.to_csv("star_wars", index = False)
+    return df
 
-print(parse_data_bs(url))
-     
+print(extract_data(url))
+
+  
+df = extract_data(url)
+df["Trilogy"] = None
+
+trilogy = ""
+for index, row in df.iterrows():
+
+    if "trilogy" in row["Film"]:
+       trilogy = row["Film"]
+    else:
+        df.at[index,'Trilogy'] = trilogy ## Iterrows are just a copy, they just 
+       
+df = df[~df["Film"].str.contains("trilogy")]
+print(df)
+
+ 
+ 
