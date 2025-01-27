@@ -4,7 +4,7 @@ import logging
 from bs4 import BeautifulSoup
 from io import StringIO
 from urllib.request import Request, urlopen
-
+from datetime import datetime
 url = "https://en.wikipedia.org/wiki/Star_Wars"
 
 ''' 
@@ -56,12 +56,10 @@ def extract_data(url):
     response = scrape_website_requests(url)
     soup = BeautifulSoup(response.content, "html.parser")
     table = soup.find("table", class_='wikitable plainrowheaders')
-    df = pd.read_html(StringIO(str(table)), header = 0) # needed for the multilines headers
-    df = pd.concat(df)
-    df.to_csv("star_wars", index = False)
+    df = pd.read_html(StringIO(str(table)), header = 0)[0] # needed for the multilines headers
+    # df = pd.concat(df)
+    df.to_csv("star_wars.csv", index = False)
     return df
-
-print(extract_data(url))
 
   
 df = extract_data(url)
@@ -76,7 +74,16 @@ for index, row in df.iterrows():
         df.at[index,'Trilogy'] = trilogy ## Iterrows are just a copy, they just 
        
 df = df[~df["Film"].str.contains("trilogy")]
-print(df)
 
- 
+#Change the date format
+date_format = '%m %d, %Y'
+df["U.S. release date"] = pd.to_datetime(df["U.S. release date"])
+
+# remove unnecessary columns
+df.drop(['Refs.', 'Unnamed: 7'], axis=1, inplace=True)
+pd.set_option("display.max_columns", None)
+
+#check the null values
+print(df.isna().sum()) ## No null values -> perfect
+
  
