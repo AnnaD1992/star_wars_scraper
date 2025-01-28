@@ -61,29 +61,98 @@ def extract_data(url):
     df.to_csv("star_wars.csv", index = False)
     return df
 
-  
-df = extract_data(url)
-df["Trilogy"] = None
+def process_skywalker_films(df):
+    df = extract_data(url)
+    df["Trilogy"] = None
 
-trilogy = ""
-for index, row in df.iterrows():
+    trilogy = ""
+    for index, row in df.iterrows():
 
-    if "trilogy" in row["Film"]:
-       trilogy = row["Film"]
-    else:
-        df.at[index,'Trilogy'] = trilogy ## Iterrows are just a copy, they just 
-       
-df = df[~df["Film"].str.contains("trilogy")]
+        if "trilogy" in row["Film"]:
+            trilogy = row["Film"]
+        else:
+                df.at[index,'Trilogy'] = trilogy ## Iterrows are just a copy, they just 
+        
+    df = df[~df["Film"].str.contains("trilogy")]
 
-#Change the date format
-date_format = '%m %d, %Y'
-df["U.S. release date"] = pd.to_datetime(df["U.S. release date"])
+    #Change the date format
+    date_format = '%m %d, %Y'
+    df["U.S. release date"] = pd.to_datetime(df["U.S. release date"])
 
-# remove unnecessary columns
-df.drop(['Refs.', 'Unnamed: 7'], axis=1, inplace=True)
-pd.set_option("display.max_columns", None)
+    # remove unnecessary columns
+    df.drop(['Refs.', 'Unnamed: 7'], axis=1, inplace=True)
+    return df
+    # pd.set_option("display.max_columns", None)
 
-#check the null values
-print(df.isna().sum()) ## No null values -> perfect
+    #check the null values
+    #print(df.isna().sum()) ## No null values -> perfect
 
- 
+#Next Steps: Download the rest of the tables + create a function
+# Documentation: https://www.educative.io/answers/how-to-find-elements-by-class-using-beautiful-soup 
+def extract_standalone_films(url):
+    
+    response = scrape_website_requests(url)
+    soup = BeautifulSoup(response.content, "html.parser")
+    table = soup.select("table[class*='wikitable plainrowheaders']")[1]
+
+    df = pd.read_html(StringIO(str(table)), header = 0)[0] # needed for the multilines headers
+    # df = pd.concat(df)
+    df.to_csv("star_wars.csv", index = False)
+    return df
+
+
+# print(extract_standalone_films(url))
+
+def extract_upcoming_movies(url):
+    response = scrape_website_requests(url)
+    soup = BeautifulSoup(response.content, "html.parser")
+    table = soup.select("table[class*='wikitable plainrowheaders']")[2]
+    df = pd.read_html(StringIO(str(table)), header = 0)[0] # needed for the multilines headers
+    # df = pd.concat(df)
+    df.to_csv("star_wars.csv", index = False)
+    return df
+
+#print(extract_upcoming_movies(url)) # Difference in the Status
+def extract_television_series(url):
+    response = scrape_website_requests(url)
+    soup = BeautifulSoup(response.content, "html.parser")
+    table = soup.select("table[class*='wikitable plainrowheaders']")[3]
+    df = pd.read_html(StringIO(str(table)), header = 0)[0] # needed for the multilines headers
+    # df = pd.concat(df)
+    df.to_csv("star_wars.csv", index = False)
+    return df
+
+# print(extract_television_series(url))
+
+def extract_special_films(url):
+    response = scrape_website_requests(url)
+    soup = BeautifulSoup(response.content, "html.parser")
+    table = soup.select("table[class*='wikitable plainrowheaders']")[4]
+    df = pd.read_html(StringIO(str(table)), header = 0)[0] # needed for the multilines headers
+    # df = pd.concat(df)
+    df.to_csv("star_wars.csv", index = False)
+    return df
+
+# print(extract_special_films(url))
+
+def extract_films(url, index):
+    
+    response = scrape_website_requests(url)
+    soup = BeautifulSoup(response.content, "html.parser")
+    table = soup.select("table[class*='wikitable plainrowheaders']")[index]
+
+    df = pd.read_html(StringIO(str(table)), header = 0)[0] # needed for the multilines headers
+    # df = pd.concat(df)
+    df.to_csv("star_wars.csv", index = False)
+    return df
+
+#Extract several tables
+skywalker_films = extract_films(url, 0)
+skywalker_films = process_skywalker_films(skywalker_films)
+standalone_films = extract_films(url, 1)
+upcoming_films = extract_films(url, 2)
+tv_series = extract_films(url, 3) # has the same multi-index lines
+special_films = extract_films(url, 4)
+print(special_films)
+
+# Process the tables separately + write functions with repetitive code
