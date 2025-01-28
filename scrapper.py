@@ -156,3 +156,4 @@ special_films = extract_films(url, 4)
 print(special_films)
 
 # Process the tables separately + write functions with repetitive code
+# Make a function to combine all tables after scraping
