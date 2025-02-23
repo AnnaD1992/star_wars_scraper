@@ -61,6 +61,16 @@ def extract_data(url):
     df.to_csv("star_wars.csv", index = False)
     return df
 
+def transform_date(df):
+    date_format = '%m %d, %Y'
+    df["U.S. release date"] = pd.to_datetime(df["U.S. release date"])
+    return df
+
+def remove_extra_columns(df, column_name):
+    # remove unnecessary columns
+    df.drop([column_name], axis=1, inplace=True)
+    return df
+
 def process_skywalker_films(df):
     df = extract_data(url)
     df["Trilogy"] = None
@@ -76,16 +86,23 @@ def process_skywalker_films(df):
     df = df[~df["Film"].str.contains("trilogy")]
 
     #Change the date format
-    date_format = '%m %d, %Y'
-    df["U.S. release date"] = pd.to_datetime(df["U.S. release date"])
+    transform_date(df)
 
     # remove unnecessary columns
-    df.drop(['Refs.', 'Unnamed: 7'], axis=1, inplace=True)
+    remove_extra_columns(df, "Refs.")
+    remove_extra_columns(df, 'Unnamed: 7')
+
     return df
     # pd.set_option("display.max_columns", None)
 
     #check the null values
     #print(df.isna().sum()) ## No null values -> perfect
+
+
+def process_standalone_films(df):
+    transform_date(standalone_films)
+    remove_extra_columns(standalone_films, "Refs.")
+    return df
 
 #Next Steps: Download the rest of the tables + create a function
 # Documentation: https://www.educative.io/answers/how-to-find-elements-by-class-using-beautiful-soup 
@@ -149,10 +166,23 @@ def extract_films(url, index):
 #Extract several tables
 skywalker_films = extract_films(url, 0)
 skywalker_films = process_skywalker_films(skywalker_films)
+
 standalone_films = extract_films(url, 1)
+standalone_films = process_standalone_films(standalone_films)
+
 upcoming_films = extract_films(url, 2)
 tv_series = extract_films(url, 3) # has the same multi-index lines
 special_films = extract_films(url, 4)
-print(special_films)
 
+print(upcoming_films)
+
+ 
 # Process the tables separately + write functions with repetitive code
+# Make a function to combine all tables after scraping
+ 
+ 
+
+
+
+
+ 
